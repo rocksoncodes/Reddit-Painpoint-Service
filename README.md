@@ -1,7 +1,7 @@
 # Reddit Radar
 `Spot problems and insights in niche Reddit communities automatically.`
 
-Reddit Radar is a lightweight AI agent that automates research on specific Reddit communities by finding niche pain points, validating them with an LLM, and producing structured outputs for downstream storage (Notion, database, etc.). Perfect for entrepreneurs, developers or community managers looking to discover problems worth solving in highly focused Reddit niches.
+Reddit Radar is a lightweight AI agent that automates research on specific Reddit communities by finding niche pain points, validating them with an LLM and producing structured outputs for downstream storage (Notion, database, etc.). Perfect for entrepreneurs, developers or community managers looking to discover problems worth solving in highly focused Reddit niches.
 
 [![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/)
 [![Docs](https://img.shields.io/badge/docs-up--to--date-brightgreen?style=flat-square)](#)
