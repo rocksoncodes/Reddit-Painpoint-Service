@@ -63,7 +63,7 @@ The project is designed as a set of composable services and pipelines, making it
 ### 1. Clone the repository
 
 ```bash
-    git clone https://github.com/[your-username]/Reddit-Radar.git
+    git clone https://github.com/[your-username]/reddit-problem-discovery-service.git
    ```
 
 ### 2. Create a virtual environment and install dependencies
