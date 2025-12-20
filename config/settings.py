@@ -20,6 +20,22 @@ NOTION_DB_ID = os.getenv("NOTION_DB_ID")
 
 
 # =====================================================
+# EMAIL CONFIGURATION
+# =====================================================
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_APP_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
+RECIPIENT_ADDRESS = os.getenv("RECIPIENT_ADDRESS")
+
+
+# =====================================================
+# EGRESS CHANNEL CONFIGURATION
+# =====================================================
+CHOICE_ONE = "Notion"
+CHOICE_TWO = "Email"
+CHOICE_THREE = "Notion & Email"
+
+
+# =====================================================
 # AGENT CONFIGURATION
 # =====================================================
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -32,7 +48,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 # =====================================================
-# REDDIT DATA INGESTION SETTINGS
+# REDDIT DATA INGRESS SETTINGS
 # =====================================================
 DEFAULT_SUBREDDITS: List[str] = [
     "Entrepreneur",
@@ -42,8 +58,8 @@ DEFAULT_SUBREDDITS: List[str] = [
     "Business_Ideas",
     "ghana"
 ]
-DEFAULT_POST_LIMIT: int = 200
-DEFAULT_COMMENT_LIMIT: int = 150
+DEFAULT_POST_LIMIT: int = 100
+DEFAULT_COMMENT_LIMIT: int = 80
 
 
 # =====================================================

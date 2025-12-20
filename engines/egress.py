@@ -1,7 +1,9 @@
-from services.egress.reporter_service import ReporterService
+from pipelines.egress_pipeline import execute_egress_pipeline
+from config import settings
 
-execute = ReporterService()
+notion_only = settings.CHOICE_ONE
+email_only = settings.CHOICE_TWO
+all_channels = settings.CHOICE_THREE
 
 if __name__ == "__main__":
-    execute.query_briefs()
-    execute.create_notion_page()
+    execute_egress_pipeline(all_channels)

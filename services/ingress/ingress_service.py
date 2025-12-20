@@ -4,7 +4,7 @@ from utils.logger import logger
 from clients.reddit_client import get_reddit_client
 
 
-class ScraperService:
+class IngressService:
     def __init__(self):
 
         self.reddit = get_reddit_client()

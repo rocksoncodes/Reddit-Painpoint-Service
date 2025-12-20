@@ -11,7 +11,7 @@ from utils.logger import logger
 Session = sessionmaker(bind=database_engine)
 
 
-class CuratorService:
+class CoreService:
     def __init__(self):
         self.session = get_session()
         self.agent = initialize_gemini()
@@ -32,7 +32,7 @@ class CuratorService:
         posts_with_sentiments = (
             session.query(Post, Sentiment)
             .join(Sentiment, Sentiment.post_id == Post.submission_id)
-            .limit(30)
+            .limit(10)
             .all()
         )
 

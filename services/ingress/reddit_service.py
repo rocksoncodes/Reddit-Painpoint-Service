@@ -1,4 +1,4 @@
-from services.ingress.scraper_service import ScraperService
+from services.ingress.ingress_service import IngressService
 from services.egress.storage_service import StorageService
 from typing import Dict, Any
 from utils.logger import logger
@@ -6,7 +6,7 @@ from utils.logger import logger
 
 class RedditService:
     def __init__(self):
-        self.scraper = ScraperService()
+        self.scraper = IngressService()
         self.storage = StorageService()
         
         
