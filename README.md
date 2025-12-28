@@ -32,104 +32,96 @@ The project is designed as a set of composable services and pipelines, making it
 - SQLAlchemy (data models)
 - Structured logging
 - Environment-based configuration
-  
 
-# Key Features
-- OAuth-based Reddit data ingestion
-- Modular agent and pipeline architecture
-- LLM-powered problem validation
-- Sentiment analysis and text processing helpers
-- Structured logging for observability
-- Designed for downstream storage (Notion / database)
+# Key features
+- OAuth-based Reddit ingestion
+- Modular services & pipelines
+- Sentiment analysis and filtering helpers
+- Gemini LLM for problem validation
+- Template-driven HTML email output
+- Local persistence via SQLAlchemy
 
 
 # Project Structure (High-Level)
 
-- `clients/` – Thin API clients (Reddit, Gemini)
-- `engines/` – Runnable entry points (ingress, core, egress)
-- `services/` – Core business logic and integrations
-- `pipelines/` – Data processing and analysis pipelines
-- `database/` – SQLAlchemy models and DB setup
-- `utils/` – Shared helpers and utilities
+- Input (acquisition)
+  - `clients/reddit_client.py`  low-level Reddit API wrapper
+  - `services/ingress/`  higher-level ingestion logic & Reddit-specific services
+  - `engines/ingress.py`  runnable ingest engine
+  
+
+- Process (analysis)
+  - `pipelines/`  processing and sentiment pipelines (`sentiment_pipeline.py`, etc.)
+  - `services/core/`  core business logic and LLM validation (`core_service.py`, `sentiment_service.py`)
+  - `engines/core.py`  orchestrates processing runs
+  
+
+- Output (delivery)
+  - `services/egress/`  email/Notion/sink logic (`egress_service.py`, `storage_service.py`)
+  - `engines/egress.py`  runnable egress engine
+  - `database/`  where processed briefs are persisted
+  - `emails/` + `utils/templates/` email templates and rendering assets
 
 
-# How to Run
+# Environment variables
+Copy `.env.example` to `.env` and fill in the values. The project requires at minimum:
 
-### Prerequisites
-- Python 3.11+
-- Reddit API credentials
-- Gemini API key
+- REDDIT_CLIENT_ID
+- REDDIT_CLIENT_SECRET
+- REDDIT_USER_AGENT
+- GEMINI_API_KEY
 
-### 1. Clone the repository
+Optional / output-related:
+- NOTION_API_KEY  (Notion sync is currently under review; set only if you plan to enable)
+- NOTION_DB_ID
+- EMAIL_ADDRESS
+- EMAIL_APP_PASSWORD  (Gmail app password recommended)
+- RECIPIENT_ADDRESS
 
-```bash
-    git clone https://github.com/[your-username]/Reddit-Problem-Discovery-Service.git
-   ```
+Security note: keep these secrets out of version control and use a secure secrets manager in production.
 
-### 2. Create a virtual environment and install dependencies
 
-```bash
-    python -m venv .venv
-    .\.venv\Scripts\activate    # Windows
-    pip install -r requirements.txt
+# How to run locally
+1. Create and activate a virtualenv
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-### 3. Copy and edit environment variables
+1. Copy environment file and edit
 
-```bash
-   cp .env.example .env
+```powershell
+copy .env.example .env
 ```
 
-The following environment variables are used by the project (add any others required by your integrations):
+2. Run these engines inorder
 
-``` bash
-REDDIT_CLIENT_ID       # Reddit API client ID
-REDDIT_CLIENT_SECRET   # Reddit API secret
-REDDIT_USER_AGENT      # Reddit API user agent string
-GEMINI_API_KEY         # Gemini / Google LLM API key
-NOTION_API_KEY         # Notion integration key
-NOTION_DB_ID           # Notion database id
+```powershell
+python engines\ingress.py
+python engines\core.py
+python engines\egress.py
 ```
 
-Notes:
-```bash
-Keep secrets out of version control. Use a secrets manager for production.
-```
 
-### 4. Run the ingest agent (example)
+# Notes & current limitations (explicit)
+- This project is focused on Reddit; other platforms are not supported by the current clients.
+- Notion integration code is present but commented / marked as "under review" in `services/egress/egress_service.py`.
+- The email template at `utils/templates/card.html` is required by the egress email renderer; missing templates will raise at runtime.
+- SMTP example uses Gmail (smtp.gmail.com:587) and requires an app password for secure authentication.
 
-```bash
-   python engines\ingest_engine.py
-```
 
-Depending on the agent/engine you want to run, use the corresponding script under `engines/`.
-
-# What I Learned
-
-- Designing modular backend systems using services and pipelines
-- Structuring long-running data ingestion workflows
-- Safely integrating third-party APIs with OAuth and environment-based config
-- Using LLMs as part of a deterministic backend process
-- Building systems intended for extension, not one-off scripts
-
-# Development Status
-
-Branch: MSAA-05-Curator-Agent-Development
-
-- ✅ Project skeleton and core modules
-- ✅ Reddit ingestion and basic data collection
-- ✅ Gemini integration for evaluation
-- 🔄 Ongoing: Problem processing and storage
-- 📝 Planned: Notion sync, richer problem-ranking, Email notifications
+# Development status
+- ✅ Reddit ingestion implemented
+- ✅ Basic sentiment and processing pipelines
+- ✅ Gemini LLM integration (thin client)
+- ⚠️ Notion sync: present but under maintenance/commented
+- ✅ Email egress implemented (Gmail example)
 
 
 # Contributing
-
-Contributions and PRs are welcome. Suggested ways to help:
-- Implement planned features from the roadmap
-- Improve data processing and validation prompts
-- Add tests and CI
-- Improve documentation and examples
-
-When opening a PR, include tests or a short demo showing the change.
-
+Contributions welcome. Suggested improvements:
+- Harden Notion integration and make it optional at runtime
+- Add unit tests for pipelines and services
+- Add CLI or scheduler wrapper (cron / Windows Task Scheduler) for runs
