@@ -6,4 +6,4 @@ email_only = settings.CHOICE_TWO
 all_channels = settings.CHOICE_THREE
 
 if __name__ == "__main__":
-    execute_egress_pipeline(email_only)
+    execute_egress_pipeline(all_channels)

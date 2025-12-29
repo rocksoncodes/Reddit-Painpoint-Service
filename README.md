@@ -1,143 +1,126 @@
-# Reddit-Problem-Discovery-Service
+# Reddit-Problem-Discovery-Service (Reddit-only)
 
-The Reddit-Problem-Discovery-Service is a backend service that helps identify real, recurring problems in niche Reddit communities by automatically ingesting discussions, analyzing sentiment and validating problem relevance using an LLM.
+This repository implements a backend-first AI agent that discovers recurring problems and sentiment signals in niche Reddit communities. The project is intentionally focused on Reddit as the single input source; other platforms are out of scope for now.
 
-It is designed to support founders, developers, and researchers who want structured, actionable insights instead of manually scanning Reddit threads.
+Quick summary:
+- Input: Reddit posts & comments (via Reddit API)
+- Process: Text cleaning, sentiment scoring, LLM-based validation (Gemini client)
+- Output: Structured briefs stored in the local database, optional Notion sync (under review), and email delivery
 
+- Collect posts and comments exclusively from configured subreddits.
+## Why Reddit-only?
+Focusing on one platform keeps ingestion, privacy and evaluation requirements simple and makes prompts and data pipelines more effective for the kinds of conversational structure Reddit provides (posts + nested comments). If you later want other platforms, treat them as another "Input" provider and implement a matching client + ingress service.
 
-# Problem
-Manually researching niche Reddit communities to discover meaningful problems is time-consuming, inconsistent and difficult to scale.
-
-High-signal insights are often buried across posts and comment threads, making it hard to:
-- Identify recurring pain points
-- Validate whether an issue represents a real market problem
-- Store and prioritize findings for later use
-
-
-# Solution
-The Reddit-Problem-Discovery-Service automates this workflow through a backend-first, modular architecture.
-
-The system:
-1. Ingests posts and comments from configured subreddits via Reddit’s API
-2. Processes and analyzes text using sentiment and filtering pipelines
-3. Uses an LLM (Gemini) to validate whether detected issues represent meaningful problems
-4. Produces structured outputs that can be stored in external systems (e.g. Notion, database)
-
-The project is designed as a set of composable services and pipelines, making it easy to extend or integrate with other tools.
-
-# Tech Stack
-- Python 3.11+
-- Reddit API (OAuth)
-- Gemini (Google LLM)
-- SQLAlchemy (data models)
-- Structured logging
-- Environment-based configuration
-
-# Key features
-- OAuth-based Reddit ingestion
-- Modular services & pipelines
-- Sentiment analysis and filtering helpers
-- Gemini LLM for problem validation
-- Template-driven HTML email output
-- Local persistence via SQLAlchemy
+- Basic LLM integration for validation prompts (Gemini/Google LLM; optional)
+## Problem
+Manual discovery of recurring, real-world problems across subreddits is slow and noisy. This service automates discovery, validation, and packaging of those findings so teams can act faster.
+- Modular code structure with agents, services and pipelines
+<img width="1832" height="967" alt="image" src="https://github.com/user-attachments/assets/334da5c1-31af-4c92-85b0-3930b28cc464" />
+## Solution (what this repo provides)
+- Periodic collection of posts and comments from configured subreddits.
+- Processing pipelines to filter, summarize and analyze sentiment.
+- LLM-based (Gemini) checks to validate whether a detected issue is a meaningful problem.
+- Outputs: curated briefs are persisted to the local DB and can be emailed or (optionally) synced to Notion.
+# Quick start
+### Prerequisites
+## Tech stack
+Python 3.11+ (tested with 3.13)
+A Reddit app (client ID & secret)
+- Gemini (Google LLM) client (thin wrapper in `clients/`)
+- SQLAlchemy (models + engine in `database/`)
+- Jinja2 templates for egress email rendering (`utils/templates/card.html`)
+- SMTP (Gmail example in `services/egress/egress_service.py`)
+- Structured logging via `utils/logger.py`
 
 
-# Project Structure (High-Level)
+## Key features
+    git clone https://github.com/[your-username]/Market-Scouting-AI-Agent.git
+   ```
 
-- Input (acquisition)
-  - `clients/reddit_client.py`  low-level Reddit API wrapper
-  - `services/ingress/`  higher-level ingestion logic & Reddit-specific services
-  - `engines/ingress.py`  runnable ingest engine
-  
+### 2. Create a virtual environment and install dependencies
 
-- Process (analysis)
-  - `pipelines/`  processing and sentiment pipelines (`sentiment_pipeline.py`, etc.)
-  - `services/core/`  core business logic and LLM validation (`core_service.py`, `sentiment_service.py`)
-  - `engines/core.py`  orchestrates processing runs
-  
+```bash
+    python -m venv .venv
+    .\.venv\Scripts\activate    # Windows
+## Project organization (Input / Process / Output)
+The repository is easiest to reason about when viewed as three layers: Input (acquisition), Process (analysis), and Output (delivery). Below is the mapping to the current folders and files so you can find the code quickly.
+```
 
-- Output (delivery)
-  - `services/egress/`  email/Notion/sink logic (`egress_service.py`, `storage_service.py`)
-  - `engines/egress.py`  runnable egress engine
-  - `database/`  where processed briefs are persisted
-  - `emails/` + `utils/templates/` email templates and rendering assets
+  - `clients/reddit_client.py` — low-level Reddit API wrapper
+  - `services/ingress/` — higher-level ingestion logic & Reddit-specific services
+  - `engines/ingress.py` — runnable ingest engine
+```
 
-
-# Environment variables
-Copy `.env.example` to `.env` and fill in the values. The project requires at minimum:
-
-- REDDIT_CLIENT_ID
-- REDDIT_CLIENT_SECRET
-- REDDIT_USER_AGENT
-- GEMINI_API_KEY
-
-Optional / output-related:
-- NOTION_API_KEY  (Notion sync is currently under review; set only if you plan to enable)
-- NOTION_DB_ID
-- EMAIL_ADDRESS
-- EMAIL_APP_PASSWORD  (Gmail app password recommended)
-- RECIPIENT_ADDRESS
-
-Security note: keep these secrets out of version control and use a secure secrets manager in production.
+  - `pipelines/` — processing and sentiment pipelines (`sentiment_pipeline.py`, etc.)
+  - `services/core/` — core business logic and LLM validation (`core_service.py`, `sentiment_service.py`)
+  - `engines/core.py` — orchestrates processing runs
+    ```bash
+       python engines\ingest_engine.py
+  - `services/egress/` — email/Notion/sink logic (`egress_service.py`, `storage_service.py`)
+  - `engines/egress.py` — runnable egress engine
+  - `database/` — where processed briefs are persisted
+  - `emails/` + `utils/templates/` — email templates and rendering assets
 
 
-# How to run locally
-1. Create and activate a virtualenv
+## Recommended alternative folder names
+If you prefer explicit layer names instead of `ingress/core/egress`, here are options ranked by clarity and common usage:
+# Configuration (.env)
+- Simple nouns (explicit):
+  - `input/`  (or `ingest/`)
+  - `process/` (or `analyze/`, `transform/`)
+  - `output/` (or `deliver/`, `publish/`)
+
+- More domain-oriented:
+  - `acquisition/` — `analysis/` — `delivery/`
+
+Notes on renaming: renaming folders is a breaking change for imports. If you do rename them, either update imports across the project or add small package shim modules that re-export the previous paths to preserve compatibility.
+
+
+## Environment variables
+The following environment variables are used by the project (add any others required by your integrations):
 
 ``` bash
 REDDIT_CLIENT_ID       # Reddit API client ID
 REDDIT_CLIENT_SECRET   # Reddit API secret
 REDDIT_USER_AGENT      # Reddit API user agent string
-GEMINI_API_KEY         # Gemini / Google LLM API key
-NOTION_API_KEY         # Notion integration key
-NOTION_DB_ID           # Notion database id
-EMAIL_ADDRESS          # Your email address
-EMAIL_APP_PASSWORD     # Your email app password
-RECIPIENT_ADDRESS      # Recipient email address
+GEMINI_API_KEY         # Gemini / Google LLM API key (optional)
+Optional / output-related:
+NOTION_DB_ID           # (optional) Notion database id
 ```
 
-1. Copy environment file and edit
-
-```powershell
-copy .env.example .env
+Notes:
+```bash
+Keep secrets out of version control. Use a secrets manager for production.
 ```
 
-2. Run these engines inorder
-
-```powershell
-python engines\ingress.py
-python engines\core.py
-python engines\egress.py
-```
-
-
-# Notes & current limitations (explicit)
-- This project is focused on Reddit; other platforms are not supported by the current clients.
-- Notion integration code is present but commented / marked as "under review" in `services/egress/egress_service.py`.
-- The email template at `utils/templates/card.html` is required by the egress email renderer; missing templates will raise at runtime.
-- SMTP example uses Gmail (smtp.gmail.com:587) and requires an app password for secure authentication.
-
+# Project structure (overview)
+## How to run (quick start — Windows example)
+- clients/        thin API clients (Reddit, Gemini)
+- engines/        runnable scripts / entrypoints (reddit_ingest, curator)
+- services/       business logic and integrations (scrapers, storage)
+- pipelines/      data processing pipelines (sentiment, curator)
+- database/       SQLAlchemy models and DB initialization
+- utils/          shared helpers
 
 # Development status
-- ✅ Reddit ingestion implemented
-- ✅ Basic sentiment and processing pipelines
-- ✅ Gemini LLM integration (thin client)
-- ⚠️ Notion sync: present but under maintenance/commented
-- ✅ Email egress implemented (Gmail example)
+
+Branch: MSAA-05-Curator-Agent-Development
+
+- ✅ Project skeleton and core modules
+- ✅ Reddit ingestion and basic data collection
+- ✅ Gemini integration for evaluation
+3. Run a specific engine (example: ingress)
+- 📝 Planned: Notion sync, richer problem-ranking, Email notifications
 
 
+# or run processing/evaluation
 # Contributing
+# or send egress outputs
 
 Contributions and PRs are welcome. Suggested ways to help:
 - Implement planned features from the roadmap
 - Improve data processing and validation prompts
-- Add tests and CI
+## Notes & current limitations (explicit)
 - Improve documentation and examples
 
 When opening a PR, include tests or a short demo showing the change.
-
-# Wiki
-
-If the README answers *what*, the wiki explains *how* and *why*.
-
-👉 https://github.com/rocksoncodes/Reddit-Problem-Discovery-Service/wiki

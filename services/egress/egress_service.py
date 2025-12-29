@@ -27,6 +27,7 @@ class EgressService:
         self.email_password = settings.EMAIL_APP_PASSWORD
         self.recipient_address = settings.RECIPIENT_ADDRESS
         self.notion_client = Client(auth=self.notion_key)
+        self.notion_blocks = []
         self.session = get_session()
         self.title = "Reddit Problem & Sentiment Report"
         self.footer_text = "©2025 Rocksoncodes. All rights reserved."
@@ -61,53 +62,119 @@ class EgressService:
             return None
 
 
-    # UNDER REVIEW & MAINTENANCE:
-    # def create_notion_page(self):
-    #     content = self.queried_brief
-    #
-    #     if not content:
-    #         self.query_briefs()
-    #         logger.info("No content to publish to Notion. Calling query_briefs()...")
-    #         content = self.queried_brief
-    #
-    #     try:
-    #         response = self.notion_client.pages.create(
-    #             parent={"page_id": self.notion_parent_page},
-    #             properties={
-    #                 "title": [
-    #                     {"type": "text", "text": {"content": "My Reddit Report"}}
-    #                 ]
-    #             },
-    #             children=[
-    #                 {
-    #                     "object": "block",
-    #                     "type": "heading_2",
-    #                     "heading_2": {
-    #                         "rich_text": [
-    #                             {"type": "text", "text": {"content": "Project Proposals"}}
-    #                         ]
-    #                     }
-    #                 },
-    #                 {
-    #                     "object": "block",
-    #                     "type": "paragraph",
-    #                     "paragraph": {
-    #                         "rich_text": [
-    #                             {"type": "text", "text": {"content": content[0].get("curated_content")}}
-    #                         ]
-    #                     }
-    #                 }
-    #             ]
-    #         )
-    #
-    #         logger.info("Notion page created successfully.")
-    #         print(response)
-    #
-    #     except APIResponseError as error:
-    #         if error.code == APIErrorCode.ObjectNotFound:
-    #             logger.error("The specified parent page was not found.", exc_info=True)
-    #         else:
-    #             logger.error(f"An error occurred while creating the Notion page:", exc_info=True)
+    def _chunk_text(self):
+
+        if not self.queried_brief:
+            self.query_brief()
+            if not self.queried_brief:
+                logger.error("No brief available to chunk.")
+                return []
+
+        chunk_text = self.queried_brief.get("curated_content", "")
+        total_characters = len(chunk_text)
+        logger.info(f"Total characters in the text: {total_characters}")
+
+        max_block_size = 2000
+        blocks = []
+
+        try:
+            if total_characters > max_block_size:
+                full_blocks = total_characters // max_block_size
+                remainder = total_characters % max_block_size
+
+                for i in range(full_blocks):
+                    start_index = i * max_block_size
+                    end_index = start_index + max_block_size
+                    block = chunk_text[start_index:end_index]
+                    blocks.append(block)
+
+                if remainder > 0:
+                    blocks.append(chunk_text[-remainder:])
+            else:
+                blocks.append(chunk_text)
+
+            logger.info(f"Total blocks created: {len(blocks)}")
+            for idx, block in enumerate(blocks):
+                logger.debug(f"Block {idx + 1} length: {len(block)}")
+
+            self.notion_blocks = blocks
+            return blocks
+
+        except Exception as e:
+            logger.error(f"Error while chunking text: {e}", exc_info=True)
+            return []
+
+
+    def _create_notion_blocks(self):
+
+        SAFE_MAX = 1950
+        notion_blocks = []
+
+        try:
+            for block in self.notion_blocks:
+                start = 0
+                while start < len(block):
+                    chunk = block[start:start + SAFE_MAX]
+                    paragraph_block = {
+                        "object": "block",
+                        "type": "paragraph",
+                        "paragraph": {
+                            "rich_text": [{"type": "text", "text": {"content": chunk}}]
+                        }
+                    }
+                    notion_blocks.append(paragraph_block)
+                    start += SAFE_MAX
+
+            logger.info(f"Created {len(notion_blocks)} Notion blocks.")
+            return notion_blocks
+
+        except Exception as e:
+            logger.error(f"Error creating Notion blocks: {e}", exc_info=True)
+            return []
+
+
+    def create_notion_page(self):
+
+        try:
+            self._chunk_text()
+            notion_blocks = self._create_notion_blocks()
+            if not notion_blocks:
+                logger.warning("No Notion blocks to publish. Aborting page creation...")
+                return
+
+            children_blocks = [
+                {
+                    "object": "block",
+                    "type": "heading_2",
+                    "heading_2": {
+                        "rich_text": [{"type": "text", "text": {"content": "Discovered Problems"}}]
+                    }
+                },
+                *notion_blocks
+            ]
+
+            response = self.notion_client.pages.create(
+                parent={"page_id": self.notion_parent_page},
+                properties={
+                    "title": [
+                        {"type": "text", "text": {"content": self.title}}
+                    ]
+                },
+                children=children_blocks
+            )
+
+            if response.get("request_id"):
+                logger.info("Notion page created successfully.")
+            else:
+                logger.warning("Notion page creation response received but request_id missing.")
+
+        except APIResponseError as error:
+            if error.code == APIErrorCode.ObjectNotFound:
+                logger.error("The specified parent page was not found.", exc_info=True)
+            else:
+                logger.error(f"Notion API error: {error}", exc_info=True)
+        except Exception as e:
+            logger.error(f"Unexpected error creating Notion page: {e}", exc_info=True)
 
 
     def _format_email(self):
@@ -121,7 +188,6 @@ class EgressService:
         try:
             content_html = markdown2.markdown(content)
             template = self.jinja_env.get_template("card.html")
-
             self.formatted_email = template.render(
                 title=self.title,
                 content_html=content_html,
