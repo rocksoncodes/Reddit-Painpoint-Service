@@ -32,8 +32,8 @@ Manual discovery of recurring, real-world problems across subreddits is slow and
 ### 4.2 Clone and install
 
 ```powershell
-git clone https://github.com/[your-username]/Market-Scouting-AI-Agent.git
-cd Market-Scouting-AI-Agent
+git clone https://github.com/rocksoncodes/Problem-Discovery-Backend-Service.git
+cd Problem-Discovery-Backend-Service
 python -m venv .venv
 .\.venv\Scripts\activate       
 pip install -r requirements.txt
