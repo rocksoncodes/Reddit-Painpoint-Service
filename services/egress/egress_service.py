@@ -19,7 +19,7 @@ TEMPLATE_DIR = CURRENT_DIR.parent.parent / "utils" / "templates"
 
 class EgressService:
     """
-    Service class responsible for generating reports and emails
+    Service class responsible for generating reports, creating Notion pages, formatting emails and sending emails.
     """
     def __init__(self):
         self.queried_brief = None
@@ -44,7 +44,11 @@ class EgressService:
         )
 
     def query_brief(self):
-        """Queries the database for AI processed briefs"""
+        """
+        Query the database for the first AI processed brief.
+        Returns:
+            dict or None: Queried brief data or None if not found or error occurs.
+        """
         try:
             with self.session as session:
                 queried_brief = session.query(ProcessedBriefs).first()
@@ -67,7 +71,11 @@ class EgressService:
 
 
     def _chunk_text(self):
-
+        """
+        Chunk the curated content of the queried brief into blocks for Notion API limits.
+        Returns:
+            list: List of text blocks.
+        """
         if not self.queried_brief:
             self.query_brief()
             if not self.queried_brief:
@@ -110,10 +118,14 @@ class EgressService:
 
 
     def _create_notion_blocks(self):
-
+        """
+        Create Notion paragraph blocks from chunked text for page creation.
+        Returns:
+            list: List of Notion block dictionaries.
+        """
         SAFE_MAX = 1950
         notion_blocks = []
-
+        
         try:
             for block in self.notion_blocks:
                 start = 0
@@ -138,6 +150,9 @@ class EgressService:
 
 
     def create_notion_page(self):
+        """
+        Create a Notion page with the chunked and formatted content blocks.
+        """
         try:
             self._chunk_text()
             notion_blocks = self._create_notion_blocks()
@@ -181,6 +196,11 @@ class EgressService:
 
 
     def _format_email(self):
+        """
+        Format the queried brief's content as an HTML email using Jinja2 and markdown2.
+        Returns:
+            str: Rendered HTML email content.
+        """
         if not self.queried_brief or not self.queried_brief.get("curated_content"):
             logger.warning("No content available to format for email.")
             self.formatted_email = ""
@@ -207,6 +227,11 @@ class EgressService:
 
 
     def send_email(self, subject="Reddit Problem Report!"):
+        """
+        Send the formatted email to the configured recipient using SMTP.
+        Args:
+            subject (str): Subject line for the email.
+        """
         if not self.formatted_email:
             self._format_email()
 

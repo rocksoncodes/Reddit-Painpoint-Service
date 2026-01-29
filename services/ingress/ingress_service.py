@@ -5,8 +5,11 @@ from clients.reddit_client import get_reddit_client
 
 
 class IngressService:
+    """
+    Service for handling Reddit data ingestion, including fetching posts and comments
+    from specified subreddits using the Reddit API client.
+    """
     def __init__(self):
-
         self.reddit = get_reddit_client()
         self.subreddits = settings.DEFAULT_SUBREDDITS
         self.post_limit = settings.DEFAULT_POST_LIMIT
@@ -19,7 +22,11 @@ class IngressService:
         self.comments = []
 
     def fetch_reddit_posts(self) -> List[Dict[str, Any]]:
-
+        """
+        Fetch Reddit posts from the configured subreddits that meet minimum criteria.
+        Returns:
+            List[Dict[str, Any]]: List of post data dictionaries.
+        """
         if not self.reddit:
             logger.warning("Reddit client not found. Reconnecting...")
             self.reddit = get_reddit_client()
@@ -59,6 +66,11 @@ class IngressService:
     
 
     def fetch_post_ids(self) -> List[str]:
+        """
+        Extract submission IDs from the fetched posts.
+        Returns:
+            List[str]: List of submission IDs.
+        """
 
         if not self.posts:
             logger.warning("No posts available. Running fetch_reddit_posts() first...")
@@ -77,7 +89,11 @@ class IngressService:
     
 
     def fetch_reddit_comments(self) -> List[Dict[str, Any]]:
-
+        """
+        Fetch comments for each submission ID collected from posts.
+        Returns:
+            List[Dict[str, Any]]: List of comment data dictionaries.
+        """
         if not self.submission_ids:
             logger.warning("No submission IDs available. Running fetch_post_ids()...")
             self.fetch_post_ids()
@@ -114,5 +130,3 @@ class IngressService:
         self.comments = comments_collected
         logger.info(f"Completed. Total comments collected: {len(comments_collected)}")
         return comments_collected
-
-

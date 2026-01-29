@@ -12,6 +12,9 @@ Session = sessionmaker(bind=database_engine)
 
 
 class CoreService:
+    """
+    Service for querying posts with sentiments, executing the curator agent and storing agent responses.
+    """
     def __init__(self):
         self.session = get_session()
         self.agent = initialize_gemini()
@@ -58,7 +61,11 @@ class CoreService:
 
 
     def execute_curator_agent(self):
-
+        """
+        Execute the curator agent to generate a summary or analysis using the Gemini model.
+        Returns:
+            str or dict: Curator agent response text or error information.
+        """
         try:
             logger.info("Executing Curator Agent...")
             response = self.agent.models.generate_content(
@@ -89,7 +96,9 @@ class CoreService:
 
 
     def store_curator_response(self):
-
+        """
+        Store the curator agent's response in the ProcessedBriefs table in the database.
+        """
         session = self.session
 
         if not self.curator_agent_response:

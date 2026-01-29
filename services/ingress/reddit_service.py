@@ -5,15 +5,20 @@ from utils.logger import logger
 
 
 class RedditService:
+    """
+    Service for orchestrating Reddit data scraping and storage pipelines.
+    """
     def __init__(self):
         self.scraper = IngressService()
         self.storage = StorageService()
         
-        
     def run_reddit_scraper(self) -> Dict[str, Any]:
-
+        """
+        Run the Reddit scraping pipeline: fetch posts, extract submission IDs, and fetch comments.
+        Returns:
+            Dict[str, Any]: Dictionary containing posts, submission IDs, and comments.
+        """
         logger.info("=== Starting Reddit scraping pipeline ===")
-
         logger.info("[PIPELINE] Step 1/3: Fetching posts")
         posts = self.scraper.fetch_reddit_posts()
         
@@ -45,9 +50,12 @@ class RedditService:
     
     
     def run_reddit_storage(self, reddit_data: Dict):
-
+        """
+        Store Reddit posts and comments using the storage service.
+        Args:
+            reddit_data (Dict): Dictionary containing posts and comments to store.
+        """
         logger.info("=== Starting Reddit storage pipeline ===")
-
         logger.info("[PIPELINE] Step 1/2: Storing posts")
         try:
             self.storage.store_posts(reddit_data)
