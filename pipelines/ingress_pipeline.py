@@ -6,7 +6,6 @@ from utils.logger import logger
 def execute_ingress_pipeline():
     try:
         logger.info("=== Starting Egress pipeline ===")
-
         init_db()
         reddit_data = scrape_reddit_data()
         store_reddit_data(reddit_data)

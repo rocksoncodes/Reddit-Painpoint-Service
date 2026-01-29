@@ -13,8 +13,10 @@ Session = sessionmaker(bind=database_engine)
 
 
 class SentimentService:
+    """
+    Service for querying posts with comments, analyzing sentiment, summarizing sentiment, and storing results.
+    """
     def __init__(self):
-
         self.ensure_nltk_resources()
         self.session = get_session()
         self.sia = SentimentIntensityAnalyzer()
@@ -24,7 +26,9 @@ class SentimentService:
 
     @staticmethod
     def ensure_nltk_resources() -> None:
-
+        """
+        Ensure the NLTK VADER lexicon is available for sentiment analysis.
+        """
         try:
             nltk.data.find("sentiment/vader_lexicon.zip")
         except LookupError:
@@ -33,7 +37,11 @@ class SentimentService:
 
 
     def query_posts_with_comments(self) -> List[Dict]:
-
+        """
+        Query all posts and their comments from the database.
+        Returns:
+            List[Dict]: List of posts with associated comments.
+        """
         session = self.session
         post_records = []
 
@@ -66,7 +74,11 @@ class SentimentService:
 
 
     def analyze_post_sentiment(self):
-
+        """
+        Analyze sentiment for each comment in the queried posts using VADER.
+        Returns:
+            list: List of sentiment scores for each post's comments.
+        """
         post_sentiment_scores = []
 
         if not self.query_results:
@@ -107,7 +119,11 @@ class SentimentService:
 
 
     def summarize_post_sentiment(self) -> List[Dict]:
-
+        """
+        Summarize sentiment results for each post, including dominant sentiment and average compound score.
+        Returns:
+            List[Dict]: List of sentiment summaries for each post.
+        """
         logger.info("Starting sentiment summarization...")
         
         if not self.post_sentiment_scores:
@@ -165,7 +181,9 @@ class SentimentService:
             
 
     def store_sentiment_results(self):
-        
+        """
+        Store sentiment summaries for posts in the database.
+        """
         session = self.session
         sentiments = self.post_sentiment_summaries
         

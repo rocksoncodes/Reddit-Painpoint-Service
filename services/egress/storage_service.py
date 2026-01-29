@@ -6,14 +6,22 @@ from utils.logger import logger
 
 
 class StorageService:
+    """
+    Service for storing Reddit posts and comments into the database.
+    """
     def __init__(self):
         self.SessionLocal = sessionmaker(bind=database_engine)
         
     def store_posts(self, reddit_data):
-
+        """
+        Store Reddit posts in the database after validating data integrity.
+        Args:
+            reddit_data (dict): Dictionary containing posts data.
+        Returns:
+            dict: Number of posts stored or error information.
+        """
         session = self.SessionLocal()
         stored_posts = 0
-        
         validated_posts = ensure_data_integrity(session, reddit_data)
 
         try:
@@ -45,7 +53,13 @@ class StorageService:
             
         
     def store_comments(self, reddit_data: dict):
-
+        """
+        Store Reddit comments in the database.
+        Args:
+            reddit_data (dict): Dictionary containing comments data.
+        Returns:
+            dict: Number of comments stored or error information.
+        """
         session = self.SessionLocal()
         stored_comments = 0
         

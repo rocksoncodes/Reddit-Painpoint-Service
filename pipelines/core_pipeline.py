@@ -5,7 +5,6 @@ from utils.logger import logger
 def execute_core_pipeline():
     try:
         logger.info("=== Starting curator pipeline ===")
-
         execute = CoreService()
         execute.execute_curator_agent()
         execute.store_curator_response()
