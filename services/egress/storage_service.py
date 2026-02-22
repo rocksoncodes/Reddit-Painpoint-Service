@@ -22,7 +22,7 @@ class StorageService:
             dict: Number of posts stored or error information.
         """
         session = self.SessionLocal()
-        stored_posts = 0
+        stored_posts_count = 0
         validated_posts = ensure_data_integrity(session, reddit_data)
 
         try:
@@ -40,11 +40,11 @@ class StorageService:
                         post_url=post_data.get("post_url", "")
                     )
                     session.add(post)
-                    stored_posts += 1
+                    stored_posts_count += 1
 
             session.commit()
-            logger.info(f"Stored {stored_posts} posts.")
-            return {"posts_stored": stored_posts}
+            logger.info(f"Stored {stored_posts_count} posts.")
+            return {"posts_stored": stored_posts_count}
 
         except Exception as e:
             session.rollback()
