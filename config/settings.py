@@ -51,8 +51,6 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 # REDDIT DATA INGRESS SETTINGS
 # =====================================================
 DEFAULT_SUBREDDITS: List[str] = [
-    "Entrepreneur",
-    "smallbusiness",
     "ghana"
 ]
 DEFAULT_POST_LIMIT: int = 100

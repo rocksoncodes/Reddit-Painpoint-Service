@@ -113,13 +113,16 @@ class CoreService:
                     f"Failed to run curator agent: {e}", exc_info=True)
 
         try:
-            curated_brief = ProcessedBriefs(
-                curated_content=self.curator_agent_response
-            )
-            session.add(curated_brief)
-            session.commit()
-            logger.info(
-                "Curator response stored successfully in the database.")
+            if self.curator_agent_response is not None:
+                curated_brief = ProcessedBriefs(
+                    curated_content=self.curator_agent_response
+                )
+                session.add(curated_brief)
+                session.commit()
+                logger.info(
+                    "Curator response stored successfully in the database.")
+            else:
+                logger.warning("Curated content is None. Skipping DB insert.")
 
         except Exception as e:
             session.rollback()
